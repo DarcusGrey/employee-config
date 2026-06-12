@@ -1,4 +1,4 @@
-namespace: employee
+# namespace: employee #Setting in the argoCD yaml file means I no longer need to define this
 
 server:
   appName: server
@@ -22,7 +22,6 @@ database:
   volumeMounts:
     name: pgdata
     mountPath: /var/lib/postgresql
-  asDeployment: false
 
 gatewayClassName: gateway-class
 gatewayName: employee-gateway

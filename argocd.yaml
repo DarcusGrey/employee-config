@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: employee-app
+  # The Application resource itself MUST live in the argocd namespace
+  namespace: argocd 
+spec:
+  project: default
+  
+  # 1. Where your code lives (The Git Repository)
+  source:
+    repoURL: 'https://github.com/DarcusGrey/employee-config'
+    path: 'employee-chart/' # The folder where your manifests (and SealedSecret) live. 
+    targetRevision: HEAD # Tracks the default branch (usually main or master)
+  
+  # 2. Where the code is going (The Target Cluster)
+  destination:
+    # This internal URL means "deploy to the cluster ArgoCD is currently installed in"
+    server: 'https://kubernetes.default.svc' 
+    namespace: employeee
+  
+  # 3. How ArgoCD should behave
+  syncPolicy:
+    automated:
+      prune: true     # Deletes resources in the cluster if you remove them from Git
+      selfHeal: true  # Reverts manual changes made directly in the cluster back to what is in Git
+
+    syncOptions:
+      - CreateNamespace=true
