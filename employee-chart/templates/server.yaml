@@ -15,8 +15,9 @@ spec:
       containers:
       - name: {{.Values.server.appName}}
         image: "{{.Values.server.image.name}}:{{.Values.server.image.tag}}"
+        # imagePullPolicy: Never #Use for local images
         ports:
-        - containerPort: 8080
+        - containerPort: {{.Values.server.containerPort}}
         envFrom:
         - secretRef:
             name: {{.Values.secretName}}
@@ -30,7 +31,7 @@ spec:
         livenessProbe:
             httpGet:
               path: {{.Values.server.path}}
-              port: 8080
+              port: {{.Values.server.containerPort}}
             initialDelaySeconds: 5
             periodSeconds: 10
             timeoutSeconds: 5
@@ -39,7 +40,7 @@ spec:
         readinessProbe:
           httpGet:
             path: {{.Values.server.path}}
-            port: 8080
+            port: {{.Values.server.containerPort}}
           initialDelaySeconds: 2
           periodSeconds: 5
 
@@ -55,8 +56,8 @@ spec:
     app: {{.Values.server.appName}}
   ports:
   - protocol: TCP
-    port: 8080
-    targetPort: 8080
+    port: {{.Values.server.svcPort}}
+    targetPort: {{.Values.server.containerPort}}
 
 ---
 
