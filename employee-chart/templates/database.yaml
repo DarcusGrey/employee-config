@@ -59,7 +59,7 @@ spec:
       name: {{.Values.database.volumeMounts.name}}
       # namespace: {{.Values.namespace}}
     spec:
-      accessModes: [ "ReadWritence" ]
+      accessModes: [ "ReadWriteOnce" ]
       resources:
         requests:
           storage: 1Gi
