@@ -1,0 +1,72 @@
+
+{{- if .Values.database.asDeployment}} 
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pgdata
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: db-deployment
+spec:
+  selector:
+    matchLabels:
+      app: db
+  template:
+    metadata:
+      labels:
+        app: db
+    spec:
+      containers:
+      - name: postgres
+        image: postgres
+        ports:
+        - containerPort: 5432
+        env:
+          - name: POSTGRES_USER
+            valueFrom:
+              secretKeyRef:
+                name: mysecret
+                key: DB_USER
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mysecret
+                key: DB_PASS
+          - name: POSTGRES_DB
+            valueFrom:
+              secretKeyRef:
+                name: mysecret
+                key: DB_NAME
+        volumeMounts:
+        - name: pgdata
+          mountPath: /var/lib/postgresql
+      volumes:
+      - name: pgdata
+        persistentVolumeClaim:
+          claimName: pgdata
+
+          
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: db
+spec:
+  selector:
+    app: db
+  ports:
+  - port: 5432
+    targetPort: 5432
+    protocol: TCP
+{{- end }}

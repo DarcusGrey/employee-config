@@ -1,0 +1,31 @@
+namespace: employee
+
+server:
+  appName: server
+  path: /api/v1/employees
+  image:
+    name: darcusgrey/employee-app
+    tag: latest
+  deplName: server-deployment
+  svcName: server-service
+  hpa:
+    name: server-hpa
+    minReplicas: 1
+    maxReplicas: 5
+
+database:
+  appName: db
+  replicas: 1
+  containerName: postgres
+  svcName: db-service
+  statefulSetName: db-statefulset
+  volumeMounts:
+    name: pgdata
+    mountPath: /var/lib/postgresql
+  asDeployment: false
+
+gatewayClassName: gateway-class
+gatewayName: employee-gateway
+
+secretName: my-secret
+sealingSecret: false 

@@ -1,0 +1,11 @@
+.env
+secrets.yaml
+secret.yaml
+**/templates/secrets.yaml
+**/templates/secret.yaml
+kustomization.yaml
+
+
+### VS Code ###
+.vscode/
+*.code-workspace

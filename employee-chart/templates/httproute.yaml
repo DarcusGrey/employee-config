@@ -1,0 +1,16 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{.Values.server.appName}}-route
+  namespace: {{.Values.namespace}}
+spec:
+  parentRefs:
+  - name: {{.Values.gatewayName}} 
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: {{.Values.server.path}}
+    backendRefs:
+    - name: {{.Values.server.svcName}}
+      port: 8080
