@@ -10,10 +10,10 @@ kubectl apply -f file.yaml -n <namespace>
 To remove any component:
 ```bash
 kubectl delete -f file.yaml -n <namespace>
-kubectl delete <component-name> -n <namespace>
+kubectl delete <component-type> <component-name> -n <namespace>
 ```
 
-> **Note:** You cannot remove pods directly. You need to remove the **deployments** managing them — otherwise the deployment will immediately spin up a replacement pod.
+> **Note:** You can remove pods directly but that is only temporary removal. You need to remove the **deployments** managing them — otherwise the deployment will immediately spin up a replacement pod.
 > Sometimes you need to delete a component before re-applying it if you've made modifications.
 
 View all active components in a namespace:
@@ -37,11 +37,11 @@ Check how many replicas are ready. Common issues:
 Useful debugging commands:
 ```bash
 kubectl get all -n <namespace>
-kubectl describe <component-name> -n <namespace>
-kubectl logs <component-name> -n <namespace>
+kubectl describe <component-type> <component-name> -n <namespace>
+kubectl logs <component-type>/<component-name> -n <namespace>
 
-# If the pod has multiple containers
-kubectl logs <component-name> -c <container-name> -n <namespace>
+# If the pod has multiple containers in a pod
+kubectl logs pod/<component-name> -c <container-name> -n <namespace>
 ```
 
 You can also open the Minikube dashboard:
@@ -72,22 +72,21 @@ minikube status
 
 ```bash
 kubectl create ns employee
-```
-
-Install `kubectx` to easily manage contexts and namespaces:
-```bash
-sudo apt install kubectx
 kubectl get ns
 ```
+
+To set the default namespace (avoids needing `-n employee` on every command). Kubens is packaged with kubectx:
+```bash
+sudo apt install kubectx
+kubens employee
+```
+
 
 You can also define a namespace in `employee-chart/templates/namespace.yaml`, or use `--create-namespace` when running a command to create one if it doesn't exist.
 
 > **Note:** There is no `namespace.yaml` in this repo and it is not defined in `values.yaml` because ArgoCD manages the namespace on its own.
 
-To set the default namespace (avoids needing `-n employee` on every command):
-```bash
-kubens employee
-```
+
 
 ---
 
@@ -104,13 +103,19 @@ Create a new Helm chart:
 helm create employee-chart
 ```
 
-This creates an `employee-chart/` folder with `charts/` and `templates/`. The `templates/` folder includes pre-built templates for services, ingress, etc. You can use those templates and modify `values.yaml`, or wipe `templates/` and build from scratch.
+This creates an `employee-chart/` folder with `charts/` and `templates/`. The `templates/` folder includes pre-built templates for services, ingress, etc. You can use those templates and modify `values.yaml`, or wipe `templates/` and build from scratch. 
 
-Deploy, upgrade, or remove the chart:
+Do not run this command if you are deploying with argoCD. You can deploy the command for testing. But you need to clean this up if you wish to deploy argoCD or otherwise there would be ownership conflicts. To Deploy, upgrade, or remove the chart (Do this only after step 7):
 ```bash
 helm install employee-app ./employee-chart -n employee
 helm upgrade employee-app ./employee-chart -n employee
 helm uninstall employee-app -n employee
+```
+
+To run in different environments like dev or prod you can use 
+```bash
+helm install employee-app ./employee-chart -f values-dev.yaml -n employee-dev --create-namespace
+helm install employee-app ./employee-chart -f values-prod.yaml -n employee-prod --create-namespace
 ```
 
 > **Tip:** In `values.yaml`, if two different fields share the same value (e.g., `containerPort` and `targetPort`), that's intentional — labels and port mappings need to match.
@@ -119,7 +124,7 @@ helm uninstall employee-app -n employee
 
 ## Step 4: Setting Up the Gateway API
 
-Ingress has been the traditional approach for external traffic, but it has stopped receiving new features and its most popular controller has been deprecated. It has been succeeded by the **Gateway API**, which is more powerful but more complex.
+Ingress has been the traditional approach for external traffic, but it has stopped receiving new features and its most popular controller (ingress-nginx) has been retired. It has been succeeded by the **Gateway API**, which is more powerful but more complex.
 
 Install the Gateway API CRDs:
 ```bash
@@ -143,8 +148,12 @@ kubectl wait --timeout=5m -n envoy-gateway-system deployment/envoy-gateway --for
 
 ### GatewayClass
 A cluster-scoped resource that defines a template for Gateways. It tells the cluster which controller (e.g., Envoy) will implement Gateways of this class.
+This is not inside the helm chart system and is a clusterwide resource. This should be run only once whenever the cluster is set up. 
 ```bash
-touch employee-chart/templates/gatewayclass.yaml
+touch gatewayclass.yaml
+
+# Do this if you are using helm application, for argoCD we are going to use a different method.
+# kubectl apply -f gatewayclass.yaml
 ```
 
 ### Gateway
@@ -187,6 +196,8 @@ minikube ssh -- docker images
 ### Service
 A LoadBalancer Service automatically routes traffic to all pods matching the configured label selector. Use `minikube tunnel` to expose the LoadBalancer externally.
 
+> **TODO:** This needs to be checked once, since there is a possibility that `minikube tunnel` and LoadBalancer will overwrite the gateway API set up. This has been acknowledged and should be fixed soon.
+
 ```bash
 # Assign an external address to the LoadBalancer
 minikube tunnel
@@ -199,6 +210,14 @@ minikube service server-service --url
 The HPA attaches to an existing Deployment and scales replicas automatically based on metrics like CPU usage or request count. The `minReplicas` and `maxReplicas` values in the HPA take precedence over those in the Deployment.
 
 > **Note:** It is generally not recommended to scale on memory, as memory is not always released immediately.
+
+> **Note:** You can use external factors like http requests to trigger scaling, which requires external monitoring tools. In our case we are using cpu and memory which requires the minikube addon metric-server.
+```bash
+# Enable the addon metric-server to allow hpa scaling
+minikube addons enable metrics-server
+```
+
+
 
 ---
 
@@ -229,79 +248,95 @@ A Headless Service is used to allow direct connections to the database pod, bypa
 
 **Secrets** store sensitive values like passwords and private keys. **ConfigMaps** store non-sensitive configuration. ConfigMap values are managed via `values.yaml` in Helm rather than a separate `configmap.yaml`.
 
-> **Important:** `secrets.yaml` is **not committed** to this repository because it contains sensitive data. Instead, **Sealed Secrets** are used to encrypt secrets before storing them.
+> **Important:** `secrets.yaml` is **not committed** to this repository because it contains sensitive data. Instead, **Sealed Secrets** are used to encrypt secrets before storing them. Also we are using `secret-values.yaml` as a secret storage in our case which is also **not committed**. Instead we are usng `secrets-template.yaml` which is just a template file with no sensitive information in the repository.
 
 ### Setting Up Sealed Secrets
 
 **Install kubeseal:**
 ```bash
-curl -OL "https://github.com/bitnami-labs/sealed-secrets/releases/download/v0.37/kubeseal-0.37-linux-amd64.tar.gz"
+curl -OL "https://github.com/bitnami-labs/sealed-secrets/releases/download/v0.37.0/kubeseal-0.37.0-linux-amd64.tar.gz"
 tar -xvzf kubeseal-0.37.0-linux-amd64.tar.gz kubeseal
 sudo install -m 755 kubeseal /usr/local/bin/kubeseal
 ```
 
 **Install the Sealed Secrets controller:**
 ```bash
-helm repo add sealed-secrets https://bitnami-labs.github.io/sealed-secrets
+helm repo add bitnami https://charts.bitnami.com/bitnami
 helm repo update
-helm install sealed-secrets sealed-secrets/sealed-secrets \
-  -n kube-system \
-  --create-namespace
+helm install sealed-secrets bitnami/sealed-secrets -n kube-system --create-namespace
 ```
 
-### Create Your Secret Template
+### Create Your Secrets Locally
+Apart from the github repository you need to create a secrets folder with secrets as values. This will be useful for local sealed secret generation and would be not be used otherwise.
 
-Create `employee-chart/templates/secrets.yaml`:
+```bash
+touch secrets/secret-values.yaml
+
+#For dev/prod environment
+touch secrets/secret-values-dev.yaml
+```
+
+In the `secret-values.yaml`, you need to write it in the form of a helm `values.yaml` file. Example of a `secret-values.yaml` file:
 ```yaml
-{{- if .Values.sealingSecret}}
-apiVersion: v1
-kind: Secret
-metadata:
-  name: {{ .Values.secretName }}
-type: Opaque
-stringData:
-  DB_USER: db_username
-  DB_PASS: db_password
-  DB_NAME: {{ .Values.database.appName }}
-  DB_URL: jdbc:postgresql://{{ .Values.database.svcName }}:5432/{{ .Values.database.appName }}
-{{- end}}
+secrets:
+  username: db_username
+  password: db_password
+
 ```
 
 ### Seal the Secret
 
 Fetch the public certificate (safe to commit to GitHub):
 ```bash
-kubeseal --fetch-cert \
-  --controller-name=sealed-secrets-controller \
-  --controller-namespace=kube-system \
-  > sealed-secrets-cert.pem
+kubeseal --fetch-cert --controller-name=sealed-secrets --controller-namespace=kube-system > sealed-secrets-cert.pem
 ```
 
-Render the Helm template to produce a plain `secret.yaml` (do **not** commit this):
+Render the Helm template to produce a plain `secret_temp.yaml` (do **not** commit this):
 ```bash
-helm template employee-app ./employee-chart --set sealingSecret=true > secret.yaml
+helm template employee-app ./employee-chart -f secrets/secret-values.yaml --set sealingSecret=true -n employee --show-only templates/secrets_template.yaml > secret_temp.yaml
+
+# Seal it into a `SealedSecret` (safe to commit):
+kubeseal --cert sealed-secrets-cert.pem -f secret_temp.yaml -o yaml -n employee > sources/sealed-secrets.yaml
 ```
 
-Seal it into a `SealedSecret` (safe to commit):
+Creating secrets for dev/prod environment. Since dev/prod environment will work in a different namespace they need to have their secrets resealed. Replace `dev` with `prod` for prod.
 ```bash
-kubeseal \
-  --cert sealed-secrets-cert.pem \
-  -f secret.yaml -o yaml \
-  > employee-chart/templates/sealed-secret.yaml
+helm template employee-app ./employee-chart   -f dev/values-dev.yaml   -f secrets/secret-values-dev.yaml  -n employee-dev --set sealingSecret=true --show-only templates/secrets_template.yaml > secret_temp.yaml
+
+# Seal it into a `SealedSecret` (safe to commit):
+kubeseal --cert sealed-secrets-cert.pem -f secret_temp.yaml -o yaml -n employee-dev > dev/sources/sealed-secrets-dev.yaml
 ```
 
-> **Note:** You may see a warning that the secret is empty. As long as `sealed-secret.yaml` contains encrypted versions of all fields from `secrets.yaml`, it is working correctly.
+> **Note:** You may see a warning that the secret is empty. As long as `sealed-secrets.yaml` contains encrypted versions of all fields from `secrets.yaml`, it is working correctly.
 
 > **Important:** The public key is tied to the cluster and namespace. When deploying to a production environment, regenerate the cert from that environment.
 
+
+Before running with helm make sure you have set up and run the cluster gateway class from step 3. This needs to be done once with cluster.
+```bash
+kubectl apply -f gatewayclass.yaml
+```
+
+Running with helm
+```bash
+helm install employee-app ./employee-chart -n employee
+
+kubectl apply -f sources/sealed-secrets.yaml
+```
+
+For dev/prod environment. Replace `dev` with `prod` for prod.
+```bash
+helm install employee-app ./employee-chart -f dev/values-dev.yaml -n employee-dev --create-namespace
+
+kubectl apply -f dev/sources/sealed-secrets-dev.yaml
+```
 ---
 
-## Step 8: Setting Up ArgoCD
+## Step 8: Setting Up ArgoCD and Running
 
 ```bash
 kubectl create namespace argocd
-kubectl apply -n argocd --server-side --force-conflicts \
-  -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+kubectl apply -n argocd --server-side --force-conflicts -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 ```
 
 Create `argocd.yaml` to define your application as infrastructure-as-code, using this repository as the single source of truth:
@@ -309,13 +344,21 @@ Create `argocd.yaml` to define your application as infrastructure-as-code, using
 touch argocd.yaml
 ```
 
-Apply it:
+Apart from the `argocd.yaml` we are also using an `argocd-infra.yaml` to handle the cluster architecture. This `argocd-infra.yaml` should be applied before applying others.
 ```bash
+kubectl apply -f argocd-infra.yaml
+
 kubectl apply -f argocd.yaml
 ```
 
-### Accessing the ArgoCD Dashboard
+For different dev/prod environments use.
+```bash
+kubectl apply -f argocd-infra.yaml
 
+kubectl apply -f dev/argocd-dev.yaml
+```
+
+### Accessing the ArgoCD Dashboard
 ```bash
 kubectl port-forward svc/argocd-server -n argocd 8090:443
 ```
@@ -325,11 +368,11 @@ Open [https://127.0.0.1:8090](https://127.0.0.1:8090) in your browser.
 - **Username:** `admin`
 - **Password:**
   ```bash
-  kubectl -n argocd get secret argocd-initial-admin-secret \
-    -o jsonpath="{.data.password}" | base64 -d; echo
+  kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d; echo
   ```
 
 If any services show their external connection as **Progressing**, assign an address with:
 ```bash
 minikube tunnel
 ```
+

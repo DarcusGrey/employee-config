@@ -1,0 +1,5 @@
+server:
+  appName: server-dev
+  hpa:
+    minReplicas: 1
+    maxReplicas: 3

@@ -1,10 +1,9 @@
 .env
 secrets.yaml
 secret.yaml
-**/templates/secrets.yaml
-**/templates/secret.yaml
+secret_temp.yaml
+secrets/
 kustomization.yaml
-
 
 ### VS Code ###
 .vscode/
