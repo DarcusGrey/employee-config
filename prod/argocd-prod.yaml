@@ -20,6 +20,10 @@ spec:
     - repoURL: 'https://github.com/DarcusGrey/employee-config'
       targetRevision: HEAD
       path: prod/sources
+    
+    - repoURL: 'https://github.com/DarcusGrey/employee-config'
+      targetRevision: HEAD
+      ref: values
   
   # 2. Where the code is going (The Target Cluster)
   destination:
