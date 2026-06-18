@@ -3,4 +3,4 @@ kind: GatewayClass
 metadata:
   name: gateway-class
 spec:
-  controllerName: gateway.envoyproxy.io/gatewayclass-controller
+  controllerName: io.cilium/gateway-controller
