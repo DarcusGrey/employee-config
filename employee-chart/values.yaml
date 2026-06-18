@@ -30,5 +30,8 @@ database:
 gatewayClassName: gateway-class-cilium
 gatewayName: employee-gateway
 
+networkPolicy:
+  enabled: true
+
 secretName: my-secret
 sealingSecret: false 
