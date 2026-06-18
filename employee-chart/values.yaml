@@ -2,6 +2,7 @@
 
 server:
   appName: server
+  hostname: "employee.local"
   path: /api/v1/employees
   image:
     name: darcusgrey/employee-app

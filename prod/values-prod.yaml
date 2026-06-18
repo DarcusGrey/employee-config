@@ -1,5 +1,6 @@
 server:
   appName: server-prod
+  hostname: "prod.employee.local"
   hpa:
     minReplicas: 5
     maxReplicas: 10
