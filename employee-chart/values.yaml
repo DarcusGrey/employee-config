@@ -27,7 +27,7 @@ database:
     name: pgdata
     mountPath: /var/lib/postgresql
 
-gatewayClassName: gateway-class
+gatewayClassName: gateway-class-cilium
 gatewayName: employee-gateway
 
 secretName: my-secret
