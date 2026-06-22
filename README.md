@@ -316,22 +316,22 @@ Fetch the public certificate (safe to commit to GitHub):
 kubeseal --fetch-cert --controller-name=sealed-secrets --controller-namespace=kube-system > sealed-secrets-cert.pem
 ```
 
-Render the Helm template to produce a plain `secret_temp.yaml` (do **not** commit this):
+Render the Helm template to produce a plain `secret-temp.yaml` (do **not** commit this):
 
 ```bash
-helm template employee-app ./employee-chart -f secrets/secret-values.yaml --set sealingSecret=true -n employee --show-only templates/secrets_template.yaml > secret_temp.yaml
+helm template employee-app ./employee-chart -f secrets/secret-values.yaml --set sealingSecret=true -n employee --show-only templates/secrets_template.yaml > secret-temp.yaml
 
 # Seal it into a `SealedSecret` (safe to commit):
-kubeseal --cert sealed-secrets-cert.pem -f secret_temp.yaml -o yaml -n employee > sources/sealed-secrets.yaml
+kubeseal --cert sealed-secrets-cert.pem -f secret-temp.yaml -o yaml -n employee > sources/sealed-secrets.yaml
 ```
 
 Creating secrets for dev/prod environment. Since dev/prod environment will work in a different namespace they need to have their secrets resealed. Replace `dev` with `prod` for prod.
 
 ```bash
-helm template employee-app ./employee-chart   -f dev/values-dev.yaml   -f secrets/secret-values-dev.yaml  -n employee-dev --set sealingSecret=true --show-only templates/secrets_template.yaml > secret_temp.yaml
+helm template employee-app ./employee-chart   -f dev/values-dev.yaml   -f secrets/secret-values-dev.yaml  -n employee-dev --set sealingSecret=true --show-only templates/secrets_template.yaml > secret-temp.yaml
 
 # Seal it into a `SealedSecret` (safe to commit):
-kubeseal --cert sealed-secrets-cert.pem -f secret_temp.yaml -o yaml -n employee-dev > dev/sources/sealed-secrets-dev.yaml
+kubeseal --cert sealed-secrets-cert.pem -f secret-temp.yaml -o yaml -n employee-dev > dev/sources/sealed-secrets-dev.yaml
 ```
 
 > **Note:** You may see a warning that the secret is empty. As long as `sealed-secrets.yaml` contains encrypted versions of all fields from `secrets.yaml`, it is working correctly.

@@ -2,6 +2,7 @@
 secrets.yaml
 secret.yaml
 secret_temp.yaml
+secret-temp.yaml
 secrets/
 kustomization.yaml
 
