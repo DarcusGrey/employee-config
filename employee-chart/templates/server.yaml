@@ -51,7 +51,7 @@ metadata:
   name: {{.Values.server.svcName}}
   # namespace: {{.Values.namespace}}
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   selector:
     app: {{.Values.server.appName}}
   ports:
