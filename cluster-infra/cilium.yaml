@@ -21,6 +21,9 @@ spec:
         operator:
           replicas: 1
         kubeProxyReplacement: true
+        # Add these two lines for local Minikube execution, Replace ServiceHost with your actual `minikube ip`
+        k8sServiceHost: "192.168.49.2" 
+        k8sServicePort: 8443
         envoy:
           enabled: true
         gatewayAPI:
