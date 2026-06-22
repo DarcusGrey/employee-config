@@ -7,7 +7,7 @@ spec:
   project: default
   source:
     repoURL: 'https://github.com/DarcusGrey/employee-config'
-    targetRevision: HEAD
+    targetRevision: main
     path: cluster-infra/
   destination:
     server: 'https://kubernetes.default.svc'

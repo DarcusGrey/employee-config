@@ -11,13 +11,13 @@
     sources:
       - repoURL: 'https://github.com/DarcusGrey/employee-config'
         path: 'employee-chart/' # The folder where your manifests (and SealedSecret) live. 
-        targetRevision: HEAD # Tracks the default branch (usually main or master)
+        targetRevision: main # Tracks the default branch (usually main or master)
         helm:
           valueFiles:
             - values.yaml
 
       - repoURL: 'https://github.com/DarcusGrey/employee-config'
-        targetRevision: HEAD
+        targetRevision: main
         path: sources
     
     # 2. Where the code is going (The Target Cluster)

@@ -93,7 +93,7 @@ You can also define a namespace in `employee-chart/templates/namespace.yaml`, or
 ## Step 3: Installing and Setting Up Helm
 
 ```bash
-curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-4
 chmod 700 get_helm.sh
 ./get_helm.sh
 ```
@@ -252,10 +252,10 @@ A Headless Service is used to allow direct connections to the database pod, bypa
 
 ### Setting Up Sealed Secrets
 
-**Install kubeseal:**
+**Install kubeseal (Get the latest stable version from https://github.com/bitnami/sealed-secrets/releases ):**
 ```bash
-curl -OL "https://github.com/bitnami-labs/sealed-secrets/releases/download/v0.37.0/kubeseal-0.37.0-linux-amd64.tar.gz"
-tar -xvzf kubeseal-0.37.0-linux-amd64.tar.gz kubeseal
+curl -OL "https://github.com/bitnami-labs/sealed-secrets/releases/download/v0.38.0/kubeseal-0.38.0-linux-amd64.tar.gz"
+tar -xvzf kubeseal-0.38.0-linux-amd64.tar.gz kubeseal
 sudo install -m 755 kubeseal /usr/local/bin/kubeseal
 ```
 
