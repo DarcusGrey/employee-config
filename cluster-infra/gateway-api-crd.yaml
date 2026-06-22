@@ -11,9 +11,8 @@ spec:
   source:
     # ArgoCD natively points directly to the source repository
     repoURL: 'https://github.com/kubernetes-sigs/gateway-api.git'
-    targetRevision: v1.1.0
-    # This path contains the Kustomize files equivalent to experimental-install.yaml
-    path: config/crd/experimental
+    targetRevision: v1.4.1
+    path: config/crd/standard
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: default
