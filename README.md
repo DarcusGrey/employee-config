@@ -137,21 +137,11 @@ Ingress has been the traditional approach for external traffic, but it has stopp
 Install the Gateway API CRDs:
 
 ```bash
-kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/latest/download/standard-install.yaml
+kubectl apply --server-side -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.4.1/standard-install.yaml
 kubectl get crds | grep gateway
 ```
 
-There is an issue with cilium v1.19.xx. That it does not support gateway 1.5.x versions. This should be fixed with v1.20.xx of cilium, Till then the issue is that the TLSRoute CRD version provided by gateway 1.5 and the one expected by cilium do not match, So you have to manually install an older version of TLSRoute CRD to make it work, or user older gateway API version or wait for cilium 1.20 version.
-
-```bash
-kubectl delete validatingadmissionpolicybinding safe-upgrades.gateway.networking.k8s.io --ignore-not-found
-kubectl delete validatingadmissionpolicy safe-upgrades.gateway.networking.k8s.io --ignore-not-found
-kubectl delete crd gateways.gateway.networking.k8s.io gatewayclasses.gateway.networking.k8s.io httproutes.gateway.networking.k8s.io referencegrants.gateway.networking.k8s.io grpcroutes.gateway.networking.k8s.io tlsroutes.gateway.networking.k8s.io --ignore-not-found
-kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.1.0/experimental-install.yaml
-
-#If you have already started the cilium operator which is now in a degrated state, you need to restart it.
-kubectl delete pod -n kube-system -l name=cilium-operator
-```
+There is an issue with cilium v1.19.xx. That it does not support gateway 1.5.x versions. This should be fixed with v1.20.xx of cilium. So we are using v1.19 of cilium with gateway api v1.4 right now, you are free to update gateway api to v1.5 when cilium v1.20 releases.
 
 The Gateway API requires three resources:
 
@@ -160,11 +150,10 @@ The Gateway API requires three resources:
 A cluster-scoped resource that defines a template for Gateways. It tells the cluster which controller (e.g., Envoy) will implement Gateways of this class.
 This is not inside the helm chart system and is a clusterwide resource. This should be run only once whenever the cluster is set up.
 
-```bash
-touch gatewayclass.yaml
+Do this if you are using helm application, for argoCD we are going to use a different method.
 
-# Do this if you are using helm application, for argoCD we are going to use a different method.
-# kubectl apply -f gatewayclass.yaml
+```bash
+kubectl apply -f cluster-infra/gatewayclass.yaml
 ```
 
 ### Gateway
