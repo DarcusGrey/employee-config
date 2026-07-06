@@ -65,7 +65,7 @@ Minikube is a single-node cluster. For multi-node setups, use [kind](https://kin
 ```bash
 curl -LO https://github.com/kubernetes/minikube/releases/latest/download/minikube-linux-amd64
 sudo install minikube-linux-amd64 /usr/local/bin/minikube && rm minikube-linux-amd64
-minikube start --cni=cilium
+minikube start   --network-plugin=cni   --cni=false   --extra-config=kubeadm.skip-phases=addon/kube-proxy
 
 # Or start with custom resource limits
 minikube start --cpus=4 --memory=8192 --cni=cilium
