@@ -30,7 +30,7 @@ spec:
           chart: cilium
           helm:
             valueFiles:
-              - $my-git-repo/path/to/cilium-base-values.yaml
+              - $my-git-repo/cluster-infra/cilium-base.yaml
             # The variables are injected here!
             values: |
               cluster:
@@ -38,7 +38,7 @@ spec:
                 id: {{cluster_id}}
               k8sServiceHost: "{{cluster_ip}}"
         
-        - repoURL: 'https://github.com/your-username/employee-conifg.git'
+        - repoURL: 'https://github.com/DarcusGrey/employee-conifg.git'
           targetRevision: main
           ref: my-git-repo
           

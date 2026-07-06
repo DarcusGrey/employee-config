@@ -1,4 +1,4 @@
-# cilium-base-values.yaml
+# cilium-base.yaml
 ipam:
   mode: "kubernetes"
 operator:
