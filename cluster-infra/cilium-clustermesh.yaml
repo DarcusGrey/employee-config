@@ -38,7 +38,7 @@ spec:
                 id: {{cluster_id}}
               k8sServiceHost: "{{cluster_ip}}"
         
-        - repoURL: 'https://github.com/DarcusGrey/employee-conifg.git'
+        - repoURL: 'https://github.com/DarcusGrey/employee-config.git'
           targetRevision: main
           ref: my-git-repo
           
