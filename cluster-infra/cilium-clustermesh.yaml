@@ -8,12 +8,12 @@ spec:
   generators:
     - list:
         elements:
-          - cluster_name: "my-cluster-1"
+          - cluster_name: "cluster1"
             cluster_id: "1"
             cluster_ip: "192.168.49.2" # Output of cluster 1's minikube ip
             dest_server: "https://kubernetes.default.svc"
           
-          - cluster_name: "my-cluster-2"
+          - cluster_name: "cluster2"
             cluster_id: "2"
             cluster_ip: "192.168.58.2" # Output of cluster 2's minikube ip
             dest_server: "https://192.168.58.2:8443"
