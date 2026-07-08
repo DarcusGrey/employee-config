@@ -15,8 +15,8 @@ spec:
           
           - cluster_name: "cluster2"
             cluster_id: "2"
-            cluster_ip: "192.168.67.2" # Output of cluster 2's minikube ip
-            dest_server: "https://192.168.67.2:8443"
+            cluster_ip: "192.168.58.2" # Output of cluster 2's minikube ip
+            dest_server: "https://192.168.58.2:8443"
 
   # 2. This template generates an ArgoCD Application for each item in the list above
   template:
