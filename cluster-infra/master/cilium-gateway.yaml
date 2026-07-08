@@ -3,7 +3,7 @@ kind: Gateway
 metadata:
   name: multicluster-gateway
 spec:
-  gatewayClassName: cilium
+  gatewayClassName: gateway-class-cilium
   listeners:
   - name: http
     protocol: HTTP

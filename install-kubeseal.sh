@@ -7,17 +7,7 @@ echo "========================================"
 echo "📦 Installing Kubernetes Local Tools..."
 echo "========================================"
 
-# --- 1. Install Helm ---
-echo -e "\n⏳ Downloading and installing Helm..."
-curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-4
-chmod 700 get_helm.sh
-./get_helm.sh
-
-# Cleanup Helm script
-rm -f get_helm.sh
-echo "✅ Helm installed successfully."
-
-# --- 2. Install Kubeseal ---
+# --- 1. Install Kubeseal ---
 echo -e "\n⏳ Downloading and installing Kubeseal (v0.38.0)..."
 KUBESEAL_VERSION="0.38.0"
 TAR_FILE="kubeseal-${KUBESEAL_VERSION}-linux-amd64.tar.gz"
@@ -32,5 +22,3 @@ sudo install -m 755 kubeseal /usr/local/bin/kubeseal
 # Cleanup Kubeseal tarball and extracted binary
 rm -f "$TAR_FILE" kubeseal
 echo "✅ Kubeseal installed successfully."
-
-echo -e "\n🎉 All tools installed and cleaned up!"
