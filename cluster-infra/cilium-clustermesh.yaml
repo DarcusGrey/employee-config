@@ -29,6 +29,9 @@ spec:
           targetRevision: 1.19.5
           chart: cilium
           helm:
+            parameters:
+              - name: "clusterName"
+                value: "{{cluster_name}}"
             valueFiles:
               - $my-git-repo/cluster-infra/cilium-base.yaml
             # The variables are injected here!

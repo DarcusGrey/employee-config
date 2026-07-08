@@ -64,4 +64,5 @@ stringData:
     }
 EOF
 
+cilium clustermesh connect --context cluster1 --destination-context cluster2
 echo "Cluster successfully linked!"
