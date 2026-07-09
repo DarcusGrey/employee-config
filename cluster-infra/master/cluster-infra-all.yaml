@@ -1,46 +1,46 @@
-apiVersion: argoproj.io/v1alpha1
-kind: ApplicationSet
-metadata:
-  name: cluster-infra
-  namespace: argocd
-spec:
-  generators:
-    - list:
-        elements:
-          - cluster_name: "cluster1"
-            cluster_id: "1"
-            cluster_ip: "192.168.49.2" # Output of cluster 1's minikube ip
-            dest_server: "https://kubernetes.default.svc"
-          
-          - cluster_name: "cluster2"
-            cluster_id: "2"
-            cluster_ip: "192.168.58.2" # Output of cluster 2's minikube ip
-            dest_server: "https://192.168.58.2:8443"
+  apiVersion: argoproj.io/v1alpha1
+  kind: ApplicationSet
+  metadata:
+    name: cluster-infra
+    namespace: argocd
+  spec:
+    generators:
+      - list:
+          elements:
+            - cluster_name: "cluster1"
+              cluster_id: "1"
+              cluster_ip: "192.168.49.2" # Output of cluster 1's minikube ip
+              dest_server: "https://kubernetes.default.svc"
+            
+            - cluster_name: "cluster2"
+              cluster_id: "2"
+              cluster_ip: "192.168.58.2" # Output of cluster 2's minikube ip
+              dest_server: "https://192.168.58.2:8443"
 
-  template:
-    metadata:
-      name: 'cluster-infra-{{cluster_name}}'
-    spec:
-      project: default
-      sources:
-        - repoURL: https://github.com/DarcusGrey/employee-config
-          targetRevision: main
-          path: cluster-infra/all
-          helm:
-            values: |
-              cluster:
-                name: "{{cluster_name}}"
-                id: "{{cluster_id}}"
-                ip: "{{cluster_ip}}"
-                dest_server: "{{dest_server}}"
-      destination:
-        server: "{{dest_server}}"
-        namespace: default
-      syncPolicy:
-        automated:
-          prune: true
-          selfHeal: true
-        syncOptions:
-          - ServerSideApply=true             # Bypasses the 262KB CRD size limit
-          - SkipDryRunOnMissingResource=true # Prevents the dry-run catch-22
-          - CreateNamespace=true
+    template:
+      metadata:
+        name: 'cluster-infra-{{cluster_name}}'
+      spec:
+        project: default
+        sources:
+          - repoURL: https://github.com/DarcusGrey/employee-config
+            targetRevision: main
+            path: cluster-infra/all
+            helm:
+              values: |
+                cluster:
+                  name: "{{cluster_name}}"
+                  id: "{{cluster_id}}"
+                  ip: "{{cluster_ip}}"
+                  dest_server: "{{dest_server}}"
+        destination:
+          server: "https://kubernetes.default.svc"
+          namespace: default
+        syncPolicy:
+          automated:
+            prune: true
+            selfHeal: true
+          syncOptions:
+            - ServerSideApply=true             # Bypasses the 262KB CRD size limit
+            - SkipDryRunOnMissingResource=true # Prevents the dry-run catch-22
+            - CreateNamespace=true
