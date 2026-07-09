@@ -30,6 +30,7 @@ for CLUSTER_NAME in "${CLUSTERS[@]}"; do
     minikube start \
         -p "${CLUSTER_NAME}" \
         --driver=docker \
+        --container-runtime=docker \
         --network-plugin=cni \
         --cni=false \
         --extra-config=kubeadm.skip-phases=addon/kube-proxy \

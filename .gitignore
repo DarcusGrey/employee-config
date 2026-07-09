@@ -9,3 +9,7 @@ kustomization.yaml
 ### VS Code ###
 .vscode/
 *.code-workspace
+
+#Cilium
+ca.crt
+ca.key

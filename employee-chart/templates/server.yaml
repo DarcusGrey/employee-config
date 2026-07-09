@@ -50,6 +50,9 @@ kind: Service
 metadata:
   name: {{.Values.server.svcName}}
   # namespace: {{.Values.namespace}}
+  annotations:
+    # This tells Cilium to load-balance this service across the mesh
+    service.cilium.io/global: "true"
 spec:
   type: ClusterIP
   selector:

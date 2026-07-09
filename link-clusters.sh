@@ -1,8 +1,15 @@
 #!/bin/bash
-# link-clusters.sh
+# link-clusters.sh (ArgoCD Cluster Registration)
 
-echo "1. Creating ArgoCD Service Account and Token on Cluster 2..."
-cat <<EOF | kubectl apply --context cluster2 -f -
+PRIMARY_CTX="cluster1"
+SECONDARY_CTX="cluster2"
+
+echo "=========================================================="
+echo "🔗 Linking Secondary Cluster to ArgoCD"
+echo "=========================================================="
+
+echo "[1/3] Creating ArgoCD Service Account and Token on $SECONDARY_CTX..."
+cat <<EOF | kubectl apply --context $SECONDARY_CTX -f -
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -35,25 +42,22 @@ EOF
 # Give Kubernetes a second to populate the token data
 sleep 2
 
-echo "2. Fetching Token from Cluster 2..."
-TOKEN=$(kubectl get secret argocd-manager-long-lived-token -n kube-system --context cluster2 -o jsonpath='{.data.token}' | base64 -d)
+echo -e "\n[2/3] Fetching Token and IP from $SECONDARY_CTX..."
+TOKEN=$(kubectl get secret argocd-manager-long-lived-token -n kube-system --context $SECONDARY_CTX -o jsonpath='{.data.token}' | base64 -d)
+CLUSTER2_IP=$(minikube ip -p $SECONDARY_CTX)
 
-echo "3. Detecting Cluster 2 IP..."
-CLUSTER2_IP=$(minikube ip -p cluster2)
-
-echo "4. Linking Cluster 2 to ArgoCD on Cluster 1..."
-# NOTE: Changed context from 'minikube' to 'cluster1'
-cat <<EOF | kubectl apply --context cluster1 -f -
+echo -e "\n[3/3] Linking $SECONDARY_CTX to ArgoCD on $PRIMARY_CTX..."
+cat <<EOF | kubectl apply --context $PRIMARY_CTX -f -
 apiVersion: v1
 kind: Secret
 metadata:
-  name: cluster2-secret
+  name: ${SECONDARY_CTX}-secret
   namespace: argocd
   labels:
     argocd.argoproj.io/secret-type: cluster
 type: Opaque
 stringData:
-  name: cluster2
+  name: ${SECONDARY_CTX}
   server: https://${CLUSTER2_IP}:8443
   config: |
     {
@@ -64,5 +68,10 @@ stringData:
     }
 EOF
 
-cilium clustermesh connect --context cluster1 --destination-context cluster2
+echo -e "\n✅ ArgoCD successfully linked to $SECONDARY_CTX!"
+echo "ArgoCD is now ready to deploy your Layer 7 Application manifests to both clusters."
+
+
+echo "Connecting Cluster Mesh..."
+cilium clustermesh connect --context cluster1 --destination-context cluster2 
 echo "Cluster successfully linked!"

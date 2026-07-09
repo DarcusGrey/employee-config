@@ -15,4 +15,4 @@ spec:
         value: {{.Values.server.path}}
     backendRefs:
     - name: {{.Values.server.svcName}}
-      port: 8080
+      port: {{.Values.server.svcPort}}
