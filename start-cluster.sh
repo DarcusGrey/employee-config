@@ -44,6 +44,9 @@ for CLUSTER_NAME in "${CLUSTERS[@]}"; do
 
 done
 
+docker network connect cluster1 cluster2 2>/dev/null || true
+docker network connect cluster2 cluster1 2>/dev/null || true
+
 echo
 echo "========================================================="
 echo "All clusters created successfully. Ready for Cilium!"

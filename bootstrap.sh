@@ -5,6 +5,7 @@
 # ==========================================
 PRIMARY_CTX="cluster1"
 OTHER_CLUSTERS=("cluster2") # Array of secondary clusters
+ALL_CLUSTERS=("cluster1" "cluster2")
 CLUSTER=$PRIMARY_CTX        # Alias used for primary setup
 ID=1                        # Starting Cluster ID
 
@@ -47,28 +48,13 @@ echo -e "\n🕸️ Installing Cilium CNI on ${CLUSTER}..."
 helm repo add cilium https://helm.cilium.io/ 2>/dev/null
 helm repo update
 
-helm upgrade --install cilium cilium/cilium \
-  --kube-context ${CLUSTER} \
-  --namespace kube-system \
-  --set cluster.name="${CLUSTER}" \
-  --set cluster.id=${ID} \
-  --set ipam.mode="kubernetes" \
-  --set operator.replicas=1 \
-  --set kubeProxyReplacement=true \
-  --set k8sServiceHost=$(minikube ip -p ${CLUSTER}) \
-  --set k8sServicePort=8443 \
-  --set envoy.enabled=true \
-  --set gatewayAPI.enabled=true \
-  --set clustermesh.useAPIServer=true \
-  --set clustermesh.config.enabled=true \
-  --set clustermesh.apiserver.service.type=NodePort \
-  --wait
 
-# Increment ID for the next cluster
-ID=$((ID + 1))
+for CLSTR in "${ALL_CLUSTERS[@]}"; do
+    # ==========================================
+    # 3. Install Cilium
+    # ==========================================
 
-for CLSTR in "${OTHER_CLUSTERS[@]}"; do
-    echo -e "\n🕸️ Installing Cilium on Secondary ($CLSTR)..."
+    echo -e "\n🕸️ Installing Cilium on ($CLSTR)..."
     helm upgrade --install cilium cilium/cilium \
       --kube-context ${CLSTR} \
       --namespace kube-system \
@@ -79,24 +65,32 @@ for CLSTR in "${OTHER_CLUSTERS[@]}"; do
       --set kubeProxyReplacement=true \
       --set k8sServiceHost=$(minikube ip -p ${CLSTR}) \
       --set k8sServicePort=8443 \
+      --set routingMode=tunnel \
+      --set tunnelProtocol=vxlan \
       --set envoy.enabled=true \
       --set gatewayAPI.enabled=true \
       --set clustermesh.useAPIServer=true \
+      --set clustermesh.enabled=true \
       --set clustermesh.config.enabled=true \
+      --set clustermesh.apiserver.tls.auto.enabled=true \
+      --set clustermesh.apiserver.tls.authMode=legacy \
       --set clustermesh.apiserver.service.type=NodePort \
+      --set clustermesh.policyDefaultLocalCluster=false \
+      --set clustermesh.apiserver.replicas=1 \
       --wait
 
+    # ==========================================
+    # 4. Fix DNS issues
+    # ==========================================
+
+    echo -e "\n🔧 Patching CoreDNS on ${CLSTR}..."
+    kubectl get configmap coredns -n kube-system --context ${CLSTR} -o yaml | \
+    sed 's/forward . \/etc\/resolv.conf/forward . 8.8.8.8/' | \
+    kubectl apply --context ${CLSTR} -f -
+        
     ID=$((ID + 1))
+
 done
-
-
-# ==========================================
-# 4. Patch CoreDNS on Primary
-# ==========================================
-echo -e "\n🔧 Patching CoreDNS on $PRIMARY_CTX..."
-kubectl get configmap coredns -n kube-system --context ${CLUSTER} -o yaml | \
-sed 's/forward . \/etc\/resolv.conf/forward . 8.8.8.8/' | \
-kubectl apply --context ${CLUSTER} -f -
 
 
 # ==========================================
