@@ -1,57 +1,57 @@
-apiVersion: argoproj.io/v1alpha1
-kind: ApplicationSet
-metadata:
-  name: cilium-multicluster
-  namespace: argocd
-spec:
-  # 1. Define your list of clusters and their unique variables here
-  generators:
-    - list:
-        elements:
-          - cluster_name: "cluster1"
-            cluster_id: "1"
-            cluster_ip: "192.168.49.2" # Output of cluster 1's minikube ip
-            dest_server: "https://kubernetes.default.svc"
+# apiVersion: argoproj.io/v1alpha1
+# kind: ApplicationSet
+# metadata:
+#   name: cilium-multicluster
+#   namespace: argocd
+# spec:
+#   # 1. Define your list of clusters and their unique variables here
+#   generators:
+#     - list:
+#         elements:
+#           - cluster_name: "cluster1"
+#             cluster_id: "1"
+#             cluster_ip: "192.168.49.2" # Output of cluster 1's minikube ip
+#             dest_server: "https://kubernetes.default.svc"
           
-          - cluster_name: "cluster2"
-            cluster_id: "2"
-            cluster_ip: "192.168.58.2" # Output of cluster 2's minikube ip
-            dest_server: "https://192.168.58.2:8443"
+#           - cluster_name: "cluster2"
+#             cluster_id: "2"
+#             cluster_ip: "192.168.58.2" # Output of cluster 2's minikube ip
+#             dest_server: "https://192.168.58.2:8443"
 
-  # 2. This template generates an ArgoCD Application for each item in the list above
-  template:
-    metadata:
-      name: 'cilium-{{cluster_name}}'
-    spec:
-      project: default
-      sources:
-        - repoURL: https://helm.cilium.io/
-          targetRevision: 1.19.5
-          chart: cilium
-          helm:
-            parameters:
-              - name: "clusterName"
-                value: "{{cluster_name}}"
-            valueFiles:
-              - $my-git-repo/cluster-infra/all/cilium-base.yaml
-            # The variables are injected here!
-            values: |
-              cluster:
-                name: "{{cluster_name}}"
-                id: {{cluster_id}}
-              k8sServiceHost: "{{cluster_ip}}"
+#   # 2. This template generates an ArgoCD Application for each item in the list above
+#   template:
+#     metadata:
+#       name: 'cilium-{{cluster_name}}'
+#     spec:
+#       project: default
+#       sources:
+#         - repoURL: https://helm.cilium.io/
+#           targetRevision: 1.19.5
+#           chart: cilium
+#           helm:
+#             parameters:
+#               - name: "clusterName"
+#                 value: "{{cluster_name}}"
+#             valueFiles:
+#               - $my-git-repo/cluster-infra/all/cilium-base.yaml
+#             # The variables are injected here!
+#             values: |
+#               cluster:
+#                 name: "{{cluster_name}}"
+#                 id: {{cluster_id}}
+#               k8sServiceHost: "{{cluster_ip}}"
         
-        - repoURL: 'https://github.com/DarcusGrey/employee-config.git'
-          targetRevision: main
-          ref: my-git-repo
+#         - repoURL: 'https://github.com/DarcusGrey/employee-config.git'
+#           targetRevision: main
+#           ref: my-git-repo
           
-      destination:
-        server: "{{dest_server}}"
-        namespace: kube-system
-      syncPolicy:
-        automated:
-          prune: true
-          selfHeal: true
-        syncOptions:
-          - CreateNamespace=false
-          - ServerSideApply=true
+#       destination:
+#         server: "{{dest_server}}"
+#         namespace: kube-system
+#       syncPolicy:
+#         automated:
+#           prune: true
+#           selfHeal: true
+#         syncOptions:
+#           - CreateNamespace=false
+#           - ServerSideApply=true
