@@ -34,7 +34,7 @@ spec:
                 ip: "{{cluster_ip}}"
                 dest_server: "{{dest_server}}"
       destination:
-        server: "https://kubernetes.default.svc"
+        server: "{{dest_server}}"
         namespace: default
       syncPolicy:
         automated:
