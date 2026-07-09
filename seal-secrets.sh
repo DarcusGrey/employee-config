@@ -28,6 +28,7 @@ for CLUSTER in "${CLUSTERS[@]}"; do
     helm template employee-app "$CHART_DIR" \
       -f secrets/secret-values.yaml \
       --set sealingSecret=true \
+      --set cluster.name="$CLUSTER" \
       -n employee \
       --show-only templates/secrets_template.yaml > "$TEMP_FILE"
 
@@ -40,6 +41,7 @@ for CLUSTER in "${CLUSTERS[@]}"; do
       -f secrets/secret-values-dev.yaml \
       -n employee-dev \
       --set sealingSecret=true \
+      --set cluster.name="$CLUSTER" \
       --show-only templates/secrets_template.yaml > "$TEMP_FILE"
 
     kubeseal --cert "$CERT_FILE" -f "$TEMP_FILE" -o yaml -n employee-dev > dev/sources/${CLUSTER}-sealed-secrets-dev.yaml
@@ -51,6 +53,7 @@ for CLUSTER in "${CLUSTERS[@]}"; do
     -f secrets/secret-values-prod.yaml \
     -n employee-prod \
     --set sealingSecret=true \
+    --set cluster.name="$CLUSTER" \
     --show-only templates/secrets_template.yaml > "$TEMP_FILE"
 
     echo "     ✅ Done with ${CLUSTER}."
