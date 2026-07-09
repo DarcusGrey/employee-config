@@ -22,4 +22,6 @@ spec:
       selfHeal: true
     syncOptions:
       # CRDs are massive; ServerSideApply prevents "metadata too long" errors
-      - ServerSideApply=true
+      - ServerSideApply=true  
+      - SkipDryRunOnMissingResource=true # Prevents the dry-run catch-22
+      - CreateNamespace=true

@@ -2,6 +2,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
   name: cluster-infra
+  namespace: argocd
 spec:
   generators:
     - list:
@@ -40,3 +41,7 @@ spec:
         automated:
           prune: true
           selfHeal: true
+        syncOptions:
+          - ServerSideApply=true             # Bypasses the 262KB CRD size limit
+          - SkipDryRunOnMissingResource=true # Prevents the dry-run catch-22
+          - CreateNamespace=true
