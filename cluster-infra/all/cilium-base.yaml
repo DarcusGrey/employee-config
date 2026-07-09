@@ -1,18 +1,18 @@
-# cilium-base.yaml
-ipam:
-  mode: "kubernetes"
-operator:
-  replicas: 1
-kubeProxyReplacement: true
-k8sServicePort: 8443
-envoy:
-  enabled: true
-gatewayAPI:
-  enabled: true
-clustermesh:
-  useAPIServer: true
-  config:
-    enabled: true
-  apiserver:
-    service:
-      type: NodePort
+# # cilium-base.yaml
+# ipam:
+#   mode: "kubernetes"
+# operator:
+#   replicas: 1
+# kubeProxyReplacement: true
+# k8sServicePort: 8443
+# envoy:
+#   enabled: true
+# gatewayAPI:
+#   enabled: true
+# clustermesh:
+#   useAPIServer: true
+#   config:
+#     enabled: true
+#   apiserver:
+#     service:
+#       type: NodePort
