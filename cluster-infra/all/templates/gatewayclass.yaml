@@ -2,5 +2,8 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: GatewayClass
 metadata:
   name: gateway-class-cilium
+  annotations:
+    argocd.argoproj.io/sync-options: ServerSideApply=true
+    argocd.argoproj.io/tracking-id: "shared-cilium-gateway"
 spec:
   controllerName: io.cilium/gateway-controller
