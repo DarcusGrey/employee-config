@@ -33,7 +33,7 @@
 #               - name: "clusterName"
 #                 value: "{{cluster_name}}"
 #             valueFiles:
-#               - $my-git-repo/cluster-infra/all/cilium-base.yaml
+#               - $my-git-repo/cluster-infra/all/templates/cilium-base.yaml
 #             # The variables are injected here!
 #             values: |
 #               cluster:

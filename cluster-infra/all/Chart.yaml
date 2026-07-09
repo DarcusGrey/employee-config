@@ -1,0 +1,5 @@
+apiVersion: v2
+name: cluster-infra-all
+description: Helm chart to handle stuff
+type: application
+version: 1.0.0
