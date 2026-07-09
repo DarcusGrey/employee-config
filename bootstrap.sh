@@ -67,6 +67,29 @@ helm upgrade --install cilium cilium/cilium \
 # Increment ID for the next cluster
 ID=$((ID + 1))
 
+for CLSTR in "${OTHER_CLUSTERS[@]}"; do
+    echo -e "\n🕸️ Installing Cilium on Secondary ($CLSTR)..."
+    helm upgrade --install cilium cilium/cilium \
+      --kube-context ${CLSTR} \
+      --namespace kube-system \
+      --set cluster.name="${CLSTR}" \
+      --set cluster.id=${ID} \
+      --set ipam.mode="kubernetes" \
+      --set operator.replicas=1 \
+      --set kubeProxyReplacement=true \
+      --set k8sServiceHost=$(minikube ip -p ${CLSTR}) \
+      --set k8sServicePort=8443 \
+      --set envoy.enabled=true \
+      --set gatewayAPI.enabled=true \
+      --set clustermesh.useAPIServer=true \
+      --set clustermesh.config.enabled=true \
+      --set clustermesh.apiserver.service.type=NodePort \
+      --wait
+
+    ID=$((ID + 1))
+done
+
+
 # ==========================================
 # 4. Patch CoreDNS on Primary
 # ==========================================
