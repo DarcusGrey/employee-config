@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: gateway-api-crds
+  name: gateway-api-crd-{{ .Values.cluster.name }}
   namespace: argocd
   annotations:
     # This MUST be the lowest number so it installs before Cilium
@@ -14,7 +14,7 @@ spec:
     targetRevision: v1.4.1
     path: config/crd/standard
   destination:
-    server: {{.Values.cluster.dest_server}}
+    server: "{{.Values.cluster.dest_server}}"
     namespace: default
   syncPolicy:
     automated:
