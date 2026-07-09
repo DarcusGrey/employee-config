@@ -68,18 +68,6 @@ helm upgrade --install cilium cilium/cilium \
 ID=$((ID + 1))
 
 # ==========================================
-# 3. Extract Primary CA
-# ==========================================
-echo -e "\n🔑 Extracting Native CA from $PRIMARY_CTX..."
-CA_CRT=$(kubectl get secret cilium-ca -n kube-system --context $PRIMARY_CTX -o jsonpath='{.data.ca\.crt}')
-CA_KEY=$(kubectl get secret cilium-ca -n kube-system --context $PRIMARY_CTX -o jsonpath='{.data.ca\.key}')
-
-if [ -z "$CA_CRT" ] || [ -z "$CA_KEY" ]; then
-    echo "❌ Failed to extract CA from $PRIMARY_CTX. Exiting."
-    exit 1
-fi
-
-# ==========================================
 # 4. Patch CoreDNS on Primary
 # ==========================================
 echo -e "\n🔧 Patching CoreDNS on $PRIMARY_CTX..."
@@ -87,44 +75,6 @@ kubectl get configmap coredns -n kube-system --context ${CLUSTER} -o yaml | \
 sed 's/forward . \/etc\/resolv.conf/forward . 8.8.8.8/' | \
 kubectl apply --context ${CLUSTER} -f -
 
-# ==========================================
-# Secondary Clusters Setup Loop
-# ==========================================
-for CLSTR in "${OTHER_CLUSTERS[@]}"; do
-    
-    echo -e "\n💉 Injecting Master CA into Secondary ($CLSTR)..."
-    cat <<EOF | kubectl apply --context $CLSTR -f -
-apiVersion: v1
-kind: Secret
-metadata:
-  name: cilium-ca
-  namespace: kube-system
-type: Opaque
-data:
-  ca.crt: ${CA_CRT}
-  ca.key: ${CA_KEY}
-EOF
-
-    echo -e "\n🕸️ Installing Cilium on Secondary ($CLSTR)..."
-    helm upgrade --install cilium cilium/cilium \
-      --kube-context ${CLSTR} \
-      --namespace kube-system \
-      --set cluster.name="${CLSTR}" \
-      --set cluster.id=${ID} \
-      --set ipam.mode="kubernetes" \
-      --set operator.replicas=1 \
-      --set kubeProxyReplacement=true \
-      --set k8sServiceHost=$(minikube ip -p ${CLSTR}) \
-      --set k8sServicePort=8443 \
-      --set envoy.enabled=true \
-      --set gatewayAPI.enabled=true \
-      --set clustermesh.useAPIServer=true \
-      --set clustermesh.config.enabled=true \
-      --set clustermesh.apiserver.service.type=NodePort \
-      --wait
-
-    ID=$((ID + 1))
-done
 
 # ==========================================
 # 5. Install ArgoCD Server on Primary

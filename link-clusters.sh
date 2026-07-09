@@ -73,5 +73,5 @@ echo "ArgoCD is now ready to deploy your Layer 7 Application manifests to both c
 
 
 echo "Connecting Cluster Mesh..."
-cilium clustermesh connect --context cluster1 --destination-context cluster2 
+cilium clustermesh connect --context cluster1 --destination-context cluster2 --allow-mismatching-ca
 echo "Cluster successfully linked!"
