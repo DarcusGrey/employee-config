@@ -27,13 +27,12 @@ spec:
           targetRevision: main
           path: cluster-infra/all
           helm:
-            parameters:
-              - name: "clusterName"
-                value: "{{cluster_name}}"
             values: |
               cluster:
                 name: "{{cluster_name}}"
-                id: {{cluster_id}}
+                id: "{{cluster_id}}"
+                ip: "{{cluster_ip}}"
+                dest_server: "{{dest_server}}"
       destination:
         server: "{{dest_server}}"
         namespace: default

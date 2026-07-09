@@ -14,7 +14,7 @@ spec:
     targetRevision: v1.4.1
     path: config/crd/standard
   destination:
-    server: 'https://kubernetes.default.svc'
+    server: {{.Values.cluster.dest_server}}
     namespace: default
   syncPolicy:
     automated:
