@@ -4,6 +4,6 @@ metadata:
   name: gateway-class-cilium
   annotations:
     argocd.argoproj.io/sync-options: ServerSideApply=true
-    argocd.argoproj.io/tracking-id: "shared-cilium-gateway"
+    argocd.argoproj.io/tracking-id: "{{ .Values.cluster.name }}-cilium-gateway"
 spec:
   controllerName: io.cilium/gateway-controller
