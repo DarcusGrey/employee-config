@@ -20,7 +20,7 @@ spec:
         - containerPort: {{.Values.server.containerPort}}
         envFrom:
         - secretRef:
-            name: {{.Values.secretName}}
+            name: {{.Values.cluster.name}}-{{.Values.secretName}}
         
         resources:
           requests:
