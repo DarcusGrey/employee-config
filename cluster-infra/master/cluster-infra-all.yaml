@@ -34,7 +34,7 @@
                   ip: "{{cluster_ip}}"
                   dest_server: "{{dest_server}}"
         destination:
-          server: "dest_server"
+          server: "{{dest_server}}"
           namespace: default
         syncPolicy:
           automated:
