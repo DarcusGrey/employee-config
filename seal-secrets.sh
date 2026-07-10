@@ -47,16 +47,20 @@ for CLUSTER in "${CLUSTERS[@]}"; do
     kubeseal --cert "$CERT_FILE" -f "$TEMP_FILE" -o yaml -n employee-dev > dev/sources/${CLUSTER}-sealed-secrets-dev.yaml
 
   # ---------------------------------------------------------
-  echo "⚙️  Sealing secrets for: PROD..."
-  helm template employee-app "$CHART_DIR" \
-    -f prod/values-prod.yaml \
-    -f secrets/secret-values-prod.yaml \
-    -n employee-prod \
-    --set sealingSecret=true \
-    --set cluster.name="$CLUSTER" \
-    --show-only templates/secrets_template.yaml > "$TEMP_FILE"
+    echo "⚙️  Sealing secrets for: PROD..."
+    helm template employee-app "$CHART_DIR" \
+      -f prod/values-prod.yaml \
+      -f secrets/secret-values-prod.yaml \
+      -n employee-prod \
+      --set sealingSecret=true \
+      --set cluster.name="$CLUSTER" \
+      --show-only templates/secrets_template.yaml > "$TEMP_FILE"
+    
+    kubeseal --cert "$CERT_FILE" -f "$TEMP_FILE" -o yaml -n employee-prod > prod/sources/${CLUSTER}-sealed-secrets-prod.yaml
+
 
     echo "     ✅ Done with ${CLUSTER}."
+
 done
 
 
